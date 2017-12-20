@@ -1,0 +1,22 @@
+{
+    "user": {
+        "name": "homer",
+        "age": 38,
+        "likes": [
+            "donuts",
+            "beer",
+            "marge"
+        ],
+        "children": [
+            {
+                "name": "bart"
+            },
+            {
+                "name": "lisa"
+            },
+            {
+                "name": "maggie"
+            }
+        ]
+    }
+}

@@ -2,8 +2,8 @@ package konf
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/ruggi/env"
 )
@@ -11,9 +11,9 @@ import (
 // EnvTag is the tag used for injecting environment variables into the configuration during Load.
 var EnvTag = env.DefaultTag
 
-// LoadFile loads the configuration in the file specified at path into the target interface (which must be a pointer).
+// Load loads the configuration in the file specified at path into the target interface (which must be a pointer).
 // It also injects environment variables into it, if any match is found. See github.com/ruggi/env for more.
-func LoadFile(path string, target interface{}) error {
+func Load(path string, target interface{}) error {
 	formatter, err := parsePath(path)
 	if err != nil {
 		return err
@@ -25,16 +25,6 @@ func LoadFile(path string, target interface{}) error {
 	return load(formatter, data, target)
 }
 
-// LoadData loads the configuration passed as raw data into the target interface (which must be a pointer).
-// It also injects environment variables into it, if any match is found. See github.com/ruggi/env for more.
-func LoadData(format Format, data []byte, target interface{}) error {
-	formatter, ok := formatters[format]
-	if !ok {
-		return fmt.Errorf("invalid format")
-	}
-	return load(formatter, data, target)
-}
-
 func load(formatter formatter, data []byte, target interface{}) error {
 	r := bytes.NewReader(data)
 	if err := formatter.Decode(r, target); err != nil {
@@ -42,4 +32,19 @@ func load(formatter formatter, data []byte, target interface{}) error {
 	}
 	env.ParseInto(target)
 	return nil
+}
+
+// Save saves the given interface v to the file at the given path, using the format obtained from the path's extension,
+// if supported.
+func Save(path string, v interface{}) error {
+	formatter, err := parsePath(path)
+	if err != nil {
+		return err
+	}
+	file, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return formatter.Encode(file, v)
 }
